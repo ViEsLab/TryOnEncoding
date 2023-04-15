@@ -8,7 +8,7 @@ namespace ViEEncoding {
         /// <param name="rawValue"> 原数据 </param>
         /// <returns></returns>
         public static byte[] RawInt32ToVarInt(int rawValue) {
-            int length = GetRawInt32Size(rawValue);
+            int length = GetVarIntSize(rawValue);
             byte[] varIntBuffer = new byte[length];
             int index = 0;
             while (true) {
@@ -17,30 +17,27 @@ namespace ViEEncoding {
                     break;
                 } else {
                     varIntBuffer[index] = (byte)((rawValue & 0x7f) | 0x80);
-                    rawValue = rawValue >> 7;
+                    rawValue = LogicalRightMove(rawValue, 7);
                 }
                 index++;
             }
             return varIntBuffer;
         }
 
-        /// <summary>
-        /// 计算数据字节长度
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static int GetRawInt32Size(Int32 value) {
-            if ((value & (0xffffffff << 7)) == 0) {
-                return 1;
-            } else if ((value & (0xffffffff << 14)) == 0) {
-                return 2;
-            } else if ((value & (0xffffffff << 21)) == 0) {
-                return 3;
-            } else if ((value & (0xffffffff << 28)) == 0) {
-                return 4;
-            } else {
-                return 5;
+        public static byte[] RawInt32ToVarIntByZigZag(int rawValue) {
+            int value = ZigZag.RawInt32ToZigZag(rawValue);
+            return RawInt32ToVarInt(value);
+        }
+
+        public static int GetVarIntSize(Int32 rawValue) {
+            int result = 0;
+            do {
+                result++;
+                rawValue = LogicalRightMove(rawValue, 7);
             }
+            while (rawValue != 0);
+
+            return result;
         }
 
         /// <summary>
@@ -55,9 +52,26 @@ namespace ViEEncoding {
                 if ((value & 0xff) == 0) {
                     break;
                 }
-                result = result | (value & 127) << (7 * i);
+                result |= (value & 0x7f) << (7 * i);
             }
             return result;
+        }
+
+        public static int GetVarIntRawValueWithZigZag(byte[] buffer) {
+            int value = GetVarIntRawValue(buffer);
+            return LogicalRightMove(value, 1) ^ -(value & 1);
+        }
+
+        private static int LogicalRightMove(int value, int bit) {
+            // Or (int)((uint)rawValue >> 7)
+            if (bit != 0) {
+                int mask = int.MaxValue;
+                value >>= 1;
+                value &= mask;
+                value >>= bit - 1;
+            }
+
+            return value;
         }
     }
 }
