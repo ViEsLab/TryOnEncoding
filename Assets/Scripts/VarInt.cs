@@ -65,9 +65,19 @@ namespace ViEEncoding {
         private static int LogicalRightMove(int value, int bit) {
             // Or (int)((uint)rawValue >> 7)
             if (bit != 0) {
-                int mask = int.MaxValue;
                 value >>= 1;
-                value &= mask;
+                value &= 0xfffffff;
+                value >>= bit - 1;
+            }
+
+            return value;
+        }
+
+        private static Int64 Int64LogicalRightMove(Int64 value, int bit) {
+            // Or (int)((uint)rawValue >> 7)
+            if (bit != 0) {
+                value >>= 1;
+                value &= 0xfffffffffffffff;
                 value >>= bit - 1;
             }
 
