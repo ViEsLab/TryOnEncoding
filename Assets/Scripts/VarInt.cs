@@ -66,7 +66,7 @@ namespace ViEEncoding {
             // Or (int)((uint)rawValue >> 7)
             if (bit != 0) {
                 value >>= 1;
-                value &= 0xfffffff;
+                value &= Int32.MaxValue;
                 value >>= bit - 1;
             }
 
@@ -77,7 +77,7 @@ namespace ViEEncoding {
             // Or (int)((uint)rawValue >> 7)
             if (bit != 0) {
                 value >>= 1;
-                value &= 0xfffffffffffffff;
+                value &= Int64.MaxValue;
                 value >>= bit - 1;
             }
 
